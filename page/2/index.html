@@ -1,0 +1,467 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  
+  
+  <title>  一介布衣 </title>
+
+ 
+  
+    <link rel="icon" href="/images/favicon.png">
+  
+
+
+  <link rel="stylesheet" href="/nayo.min.css"> 
+</head>  
+  <body>   
+    
+      <header class="header">
+	
+  <nav class="header-nav">        
+   
+    <span class="iconfont icon-menu mobile-toggle"></span>   	
+
+    <div class="header-menu">          
+              
+            
+
+              <a class="header-menu-link" id="header-menu-home" href="/">首页</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-archives" href="/archives">归档</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-tags" href="/tags">标签</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-about" href="/about">关于</a>     
+
+            
+            
+            
+
+              <a class="iconfont icon-menu-search header-menu-link" id="header-menu-search"></a>
+
+            
+                
+    </div>  
+    
+  </nav>
+</header>   
+
+      <div class="container">       
+          
+          
+            <section class="main">  
+          
+
+          
+
+
+
+
+<div class="profile sildeUpMin">
+	
+		<a href="/">
+			<img class="avatar" src="/images/local-logo.png">
+		</a>
+		<p class="author">Lizy</p>
+		
+		<div class="social">
+   		
+    	</div>		
+</div>
+
+
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2018/02/08/Jsonp浏览器端实现/">JSONP浏览器端原理及实现</a>  
+	       
+		 
+
+		<div class="article-meta">
+			2月 08, 2018
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/Javascript-JSONP/">Javascript, JSONP</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<h1 id="Jsonp浏览器端原理及实现"><a href="#Jsonp浏览器端原理及实现" class="headerlink" title="Jsonp浏览器端原理及实现"></a>Jsonp浏览器端原理及实现</h1><p>前端开发中会常用Ajax来向服务端请求数据。由于浏览器同源策略限制，Ajax不能请求当前域名之外的资源。然而在一些业务场景里，不得不需要从外部域名获取资源，目前比较成熟的方案有：</p>
+<ul>
+<li>服务端代理转发请求；</li>
+<li>服务端CORS；</li>
+<li>Jsonp；</li>
+</ul>
+<p>本文介绍Jsonp在浏览器端的实现。</p>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2018/02/08/Jsonp浏览器端实现/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2018/01/09/微信签名接口开发概要/">微信签接口开发概要</a>  
+	       
+		 
+
+		<div class="article-meta">
+			1月 09, 2018
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/小程序/">小程序</a>           
+				            
+						<a class="article-tag" href="/tags/微信开发/">微信开发</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<h1 id="微信签名接口开发概要"><a href="#微信签名接口开发概要" class="headerlink" title="微信签名接口开发概要"></a>微信签名接口开发概要</h1><blockquote>
+<p>开始之前，开发人员最好先注册自用公众号测试号，<a href="https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login" target="_blank" rel="noopener">申请地址</a></p>
+</blockquote>
+<h2 id="1、微信验证服务器地址的有效性"><a href="#1、微信验证服务器地址的有效性" class="headerlink" title="1、微信验证服务器地址的有效性"></a>1、微信验证服务器地址的有效性</h2><blockquote>
+<p><a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&amp;id=mp1421135319" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<blockquote>
+<p>需要提前在公众号后台配置域名信息，比如<code>www.abc.com</code>，貌似不支持通配符<code>*</code>。</p>
+</blockquote>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2018/01/09/微信签名接口开发概要/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2017/12/27/https代理至本地localhost/">https代理至本地localhost</a>  
+	       
+		 
+
+		<div class="article-meta">
+			12月 27, 2017
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/https/">https</a>           
+				            
+						<a class="article-tag" href="/tags/nginx/">nginx</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<h1 id="https代理至本地localhost"><a href="#https代理至本地localhost" class="headerlink" title="https代理至本地localhost"></a>https代理至本地localhost</h1><p>场景：小程序内嵌了某线上地址，需要修改业务逻辑与小程序联调。而小程序webview业务url不好修改为localhost或http协议的地址。<br>所以，需要本地借助nginx起一个与线上域名相同的https服务，代替线上服务。</p>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2017/12/27/https代理至本地localhost/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2017/09/14/JavaScript性能测试/">核心JavaScript性能测试</a>  
+	       
+		 
+
+		<div class="article-meta">
+			9月 14, 2017
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/Javascript/">Javascript</a>           
+				            
+						<a class="article-tag" href="/tags/性能/">性能</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<p><strong>运行环境：chrome  56.0.2924.87 (64-bit) MacOs</strong></p>
+<h2 id="1-parseInt-与-操作性能比较："><a href="#1-parseInt-与-操作性能比较：" class="headerlink" title="1. parseInt 与 + 操作性能比较："></a>1. parseInt 与 + 操作性能比较：</h2><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> count = <span class="number">10000000</span>;</span><br><span class="line"><span class="keyword">var</span> arr = [];</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; count; i++)&#123;</span><br><span class="line">   arr.push(i + <span class="string">''</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.time();</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">var</span> i = <span class="number">0</span>, l = arr.length; i &lt; l; i++)&#123;</span><br><span class="line">   <span class="built_in">parseInt</span>(arr[i]);</span><br><span class="line">   <span class="comment">// +(arr[i]);</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">console</span>.timeEnd();</span><br></pre></td></tr></table></figure>
+<p>结果：</p>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2017/09/14/JavaScript性能测试/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2017/09/14/三列纵向布局自适应高度(圣杯布局/">三列纵向布局自适应高度（圣杯布局）实现</a>  
+	       
+		 
+
+		<div class="article-meta">
+			9月 14, 2017
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/CSS布局/">CSS布局</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<p>经典CSS布局面试题，圣杯布局的实现与原理。</p>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2017/09/14/三列纵向布局自适应高度(圣杯布局/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+    	  	
+  		
+    			
+
+<article class="article">		
+	   
+	<div class="article-header">
+	    
+		<a class="article-title" href="/2017/09/14/JavaScript单例模式/">JavaScript设计模式 - 单例模式</a>  
+	       
+		 
+
+		<div class="article-meta">
+			9月 14, 2017
+			
+				<span class="iconfont icon-star"></span>
+				            
+						<a class="article-tag" href="/tags/设计模式/">设计模式</a>           
+				            
+						<a class="article-tag" href="/tags/javascript/">javascript</a>           
+				
+			
+		</div>
+	</div>
+
+
+	
+
+    
+	<div class="article-excerpt">	
+		
+			<h2 id="JavaScript单例模式"><a href="#JavaScript单例模式" class="headerlink" title="JavaScript单例模式"></a>JavaScript单例模式</h2><blockquote>
+<p>参考自汤姆大叔博客：<a href="http://www.cnblogs.com/TomXu/archive/2012/02/20/2352817.html" target="_blank" rel="noopener">http://www.cnblogs.com/TomXu/archive/2012/02/20/2352817.html</a></p>
+</blockquote>
+<p>在一些场景中，可能只允许一个类只实例化一次。在第一个实例创建之后，再次实例化这个类时，只返回已经已有实例。具体实现思路，在实例化时，先判断是否已经有实例，有的话直接返回，没有的话再进行实例化。以下是一些实现的思路总结。</p>
+		  	  
+	</div>
+
+	<div class="article-bottom">
+		<a class="article-readmore" href="/2017/09/14/JavaScript单例模式/">阅读更多</a> 	
+	</div>	
+    
+</article>     
+     	
+
+
+
+ 
+   <nav class="paginator scrollIn">
+    
+        <a class="prev" href="/"> 
+        <i class="iconfont icon-left"></i>
+        上一页
+        </a>
+    
+
+   <span class="page-number"> Page <strong>2</strong>. </span>
+
+    
+  </nav> 
+
+          </section> 
+      </div>            
+    
+    <a id="backTop">
+      <span>
+        <i class="iconfont icon-backtotop"></i>
+      </span>
+    </a> 
+
+  
+    
+    <div class="search-container sildeUpMin">
+        <div class="search-header">
+            <input type="text" placeholder="输入你想搜索的" id="search-input" class="search-input">  
+            <span class="search-cancel iconfont icon-cancel"></span>
+        </div>
+        <div id="search-result" class="search-result"></div>
+    </div>
+ 
+     <div class="mobile-menu">      
+
+      
+      <img class="mobile-menu-icon" src="/images/favicon.png">   
+      
+
+         
+            
+
+            <a class="mobile-menu-link" href="/">首页
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/archives">归档
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/tags">标签
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/about">关于
+            </a>
+            
+         
+                          
+
+            <a class="mobile-menu-link mobile-menu-search" href="#">搜索 </a>                 
+            
+         
+      
+</div>        
+    
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){
+	i['GoogleAnalyticsObject']=r;
+	i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-121998627-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+     
+    
+
+
+
+
+<footer id="footer">	    
+
+		
+		<div class="footer-copyright">
+		&copy;
+		
+		2018		
+	
+		Lizy
+		<br>
+
+		Theme By
+		<a href="https://github.com/Lemonreds/hexo-theme-Nayo" target="_blank">Nayo</a>	
+		</div>			
+	 
+</footer>   
+
+  
+
+    <script src="/nayo.bundle.js"></script>           
+  </body>        
+</html>

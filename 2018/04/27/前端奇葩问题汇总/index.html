@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  
+  
+  <title>  前端奇葩问题汇总 |   一介布衣 </title>
+
+ 
+  
+    <link rel="icon" href="/images/favicon.png">
+  
+
+
+  <link rel="stylesheet" href="/nayo.min.css"> 
+</head>  
+  <body>   
+    
+      <header class="header">
+	
+  <nav class="header-nav">        
+   
+    <span class="iconfont icon-menu mobile-toggle"></span>   	
+
+    <div class="header-menu">          
+              
+            
+
+              <a class="header-menu-link" id="header-menu-home" href="/">首页</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-archives" href="/archives">归档</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-tags" href="/tags">标签</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-about" href="/about">关于</a>     
+
+            
+            
+            
+
+              <a class="iconfont icon-menu-search header-menu-link" id="header-menu-search"></a>
+
+            
+                
+    </div>  
+    
+  </nav>
+</header>   
+
+      <div class="container">       
+          
+          
+            <section class="main">  
+          
+
+          <article class="post">
+  
+	<div class="post-header">
+
+	<p class="post-title">	
+		前端奇葩问题汇总
+	</p>
+			
+
+	<div class="meta-info">	
+	<span>
+		4月 27, 2018
+	</span>
+
+	
+	
+		<i class="iconfont icon-words"></i>
+		<span>
+			1882
+		</span>
+	
+</div>
+
+</div> 
+	 
+
+	  <div class="post-content slideDownMin">
+
+		
+
+			
+					<h2 id="前端奇葩问题汇总"><a href="#前端奇葩问题汇总" class="headerlink" title="前端奇葩问题汇总"></a>前端奇葩问题汇总</h2><p>以下汇总了实际项目中遇到的一些比较奇葩疑难的问题及解决方法。</p>
+<p>不定期更新中。</p>
+<a id="more"></a>
+<ul>
+<li><strong>1. qq音乐 webview运行 geolocation.getCurrentLocation问题</strong></li>
+</ul>
+<p><code>getCurrentLocation(resolve, reject, opt)</code></p>
+<p>线上https环境直接无视geolocation.getCurrentLocation，既不resolve，也不reject，感觉是报错了。本机http默认reject。解决办法时检测浏览器UA，做对应的降级处理。幸运的是qq音乐webview内置的UA有比较稳定的<code>qqmusic</code>字段可供检测，针对<code>qqmusic</code>降级采用ip定位。</p>
+<ul>
+<li><strong>2. Promise.prototype.finally</strong></li>
+</ul>
+<p><code>Promise.then(...).catch(...).finally(...)</code></p>
+<p>是es2018新增规范，一些polyfill库并未支持，需要手动增加 finally 方法的实现。实现方式如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Promise</span>.prototype.finally = <span class="function"><span class="keyword">function</span> (<span class="params">cb</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">let</span> P = <span class="built_in">Promise</span>.constructor</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.then(</span><br><span class="line">      value =&gt; P.resolve(cb()).then(<span class="function"><span class="params">()</span> =&gt;</span> value),</span><br><span class="line">      reason =&gt; P.resolve(cb()).then(<span class="function"><span class="params">()</span> =&gt;</span> &#123; <span class="keyword">throw</span> reason &#125;)</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>3. 小程序webview打开页面 <code>window.__wxjs_environment</code>无法检测</strong></li>
+</ul>
+<p>在Android端，如果由正常的链接、router通过<code>replace</code>跳转的url，再按下物理返回键时，<code>window.__wxjs_environment</code>会出现异步写入的问题。此时代码如果是同步监测该属性，则会失败。举例如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// a页面通过router跳转至b页面</span></span><br><span class="line"><span class="comment">// a.html</span></span><br><span class="line">location.href = <span class="string">'b.html'</span></span><br><span class="line"><span class="comment">// a.vue</span></span><br><span class="line"><span class="keyword">this</span>.$router.push(<span class="string">'b'</span>)</span><br><span class="line"><span class="comment">// 监测window.__wxjs_environment</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="built_in">window</span>.__wxjs_environment === <span class="string">'miniprogram'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// b页面是一个中转页，b页面再replace到c页面</span></span><br><span class="line"><span class="comment">// b.html</span></span><br><span class="line">location.replace(<span class="string">'c.html'</span>)</span><br><span class="line"><span class="comment">// b.vue</span></span><br><span class="line"><span class="keyword">this</span>.$router.replace(<span class="string">'/c'</span>)</span><br></pre></td></tr></table></figure>
+<p>跳转之后页面url是c.html，此时Android设备按下物理返回键，页面url直接返回a.html，那么<code>log</code>将显示false</p>
+<ul>
+<li><strong>4. 微信浏览器Vue.js异步模块导致的后退问题</strong></li>
+</ul>
+<p>问题描述：内嵌在微信小程序中的页面，微信native会自动在windows上挂载环境检测属性：<code>__wxjs_environment=miniprogram</code></p>
+<p>在业务中有如下跳转：</p>
+<blockquote>
+<ol>
+<li>a页面通过环境检测属性判断，展示某一特性按钮 <code>btn</code></li>
+<li>点击 <code>btn</code> 按钮跳转至页面 b</li>
+<li>b页面通过环境监测，通过 <code>location.replace</code> 跳转至页面 c</li>
+<li>此时，在 <strong>安卓设备，使用物理返回键（虚拟返回键不产生此问题）</strong>，返回a页面，a页面环境检测判断失败，不展示 <code>btn</code> 按钮。<code>window.__wxjs_environment</code> 属性也不存在。</li>
+</ol>
+</blockquote>
+<p>修复过程：</p>
+<ol>
+<li>首先想到的是微信浏览器检测url变化，异步的在 <code>window</code> 对象上挂载属性。所以调整了环境检测，改为异步方式检测，适当的通过 <code>setTimeout</code> 增加一个延迟时间。通过多次调试，发现 <code>220ms</code> 是一个合理的延迟时间，自用安卓机<code>三星SM9280，系统Android7.0</code>，<code>华为Mate8</code> 测试通过；</li>
+<li>部署至dev环境后，QA报 <code>小米MiNote、华为Mate8</code> 问题重现，三星SM9280不再复现。再次想到可能是性能较差或者内核爆改严重的手机可能 <code>220ms</code> 延迟不够用。适当调整延迟时间，问题仍未解决，此问题并不是必现，但复现概率超过50%。</li>
+<li>路由代码中发现c页面时是步组件，通过 <code>import()</code> 方法导入，并不是打包在 <code>bundle</code> 里的。试着将异步组件改为静态导入，使用 <code>import xxx</code> 导入，问题解决。dev、pre环境均未复现。</li>
+</ol>
+<p>问题产生原理猜测：可能是微信为了优化性能开销，在路由从历史堆栈返回时，没有复用<code>window</code>对象，在后退回去的页面重新给 <code>window</code> 挂载属性，导致一定概率的失败，导致问题产生。iOS正常。</p>
+  	
+					
+	  </div>     
+	  
+
+	
+<div class="post-meta">
+      	
+
+      
+        <i class="iconfont icon-tag"></i>     
+          <a class="tag-link" href="/tags/汇总/">汇总</a> <a class="tag-link" href="/tags/问题汇总/">问题汇总</a>    
+      	
+</div>
+
+
+
+
+
+<div class="post-footer">
+  <div class="pf-left">
+      <img class="pf-avatar" src="/images/local-logo.png">
+      <p class="pf-des">Lizy</p>
+  </div>
+
+  <div class="pf-right">           
+      <div class="pf-links">
+         
+        
+	
+<script id="-mob-share" src="http://f1.webshare.mob.com/code/mob-share.js?appkey=21d601593a1de"></script>
+	
+	<span class="share-btn">
+	<span class="iconfont icon-share"></span>
+	</span>
+
+
+	<div class="-mob-share sildeUpMin">
+		   			             
+            <a class="iconfont  icon-share-qq -mob-share-qq"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weixin -mob-share-weixin"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weibo -mob-share-weibo"></a>		
+     	   			             
+            <a class="iconfont  icon-share-douban -mob-share-douban"></a>		
+     	   			             
+            <a class="iconfont  icon-share-facebook -mob-share-facebook"></a>		
+     	   			             
+            <a class="iconfont  icon-share-twitter -mob-share-twitter"></a>		
+     	   
+	</div>	
+
+      </div>  
+    <nav class="pf-paginator">
+      
+         
+          <a href="/2018/05/02/SOA JSBridge Define/" data-hover="JSBridge设计">上一篇</a>      
+            
+        
+      
+        
+        <a href="/2018/04/23/VUE SSR预研/" data-hover="SSR预研"> 下一篇</a>
+            
+  </nav>   
+  </div>
+</div> 
+	
+
+
+    
+    <div id="disqus_thread"></div>
+
+    <script>
+    (function() { 
+    var d = document, s = d.createElement('script');
+    s.src = 'https://'+'lemonreds'+'.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());    
+    (d.head || d.body).appendChild(s);
+    })();
+    </script>
+
+    <noscript>Please enable JavaScript to view the  <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+    </noscript>
+
+
+	
+</article>
+
+	<div class="sidebar">
+		<h4 class="toc-title">目录</h4>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前端奇葩问题汇总"><span class="toc-text">前端奇葩问题汇总</span></a></li></ol>
+	</div>
+
+          </section> 
+      </div>            
+    
+    <a id="backTop">
+      <span>
+        <i class="iconfont icon-backtotop"></i>
+      </span>
+    </a> 
+
+  
+    
+    <div class="search-container sildeUpMin">
+        <div class="search-header">
+            <input type="text" placeholder="输入你想搜索的" id="search-input" class="search-input">  
+            <span class="search-cancel iconfont icon-cancel"></span>
+        </div>
+        <div id="search-result" class="search-result"></div>
+    </div>
+ 
+     <div class="mobile-menu">      
+
+      
+      <img class="mobile-menu-icon" src="/images/favicon.png">   
+      
+
+         
+            
+
+            <a class="mobile-menu-link" href="/">首页
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/archives">归档
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/tags">标签
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/about">关于
+            </a>
+            
+         
+                          
+
+            <a class="mobile-menu-link mobile-menu-search" href="#">搜索 </a>                 
+            
+         
+      
+</div>        
+    
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){
+	i['GoogleAnalyticsObject']=r;
+	i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-121998627-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+     
+    
+
+
+
+
+<footer id="footer">	    
+
+		
+		<div class="footer-copyright">
+		&copy;
+		
+		2018		
+	
+		Lizy
+		<br>
+
+		Theme By
+		<a href="https://github.com/Lemonreds/hexo-theme-Nayo" target="_blank">Nayo</a>	
+		</div>			
+	 
+</footer>   
+
+  
+
+    <script src="/nayo.bundle.js"></script>           
+  </body>        
+</html>
