@@ -1,0 +1,365 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  
+  
+  <title>  微信签接口开发概要 |   一介布衣 </title>
+
+ 
+  
+    <link rel="icon" href="/images/favicon.png">
+  
+
+
+  <link rel="stylesheet" href="/nayo.min.css"> 
+</head>  
+  <body>   
+    
+      <header class="header">
+	
+  <nav class="header-nav">        
+   
+    <span class="iconfont icon-menu mobile-toggle"></span>   	
+
+    <div class="header-menu">          
+              
+            
+
+              <a class="header-menu-link" id="header-menu-home" href="/">首页</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-archives" href="/archives">归档</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-tags" href="/tags">标签</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-about" href="/about">关于</a>     
+
+            
+            
+            
+
+              <a class="iconfont icon-menu-search header-menu-link" id="header-menu-search"></a>
+
+            
+                
+    </div>  
+    
+  </nav>
+</header>   
+
+      <div class="container">       
+          
+          
+            <section class="main">  
+          
+
+          <article class="post">
+  
+	<div class="post-header">
+
+	<p class="post-title">	
+		微信签接口开发概要
+	</p>
+			
+
+	<div class="meta-info">	
+	<span>
+		7月 10, 2018
+	</span>
+
+	
+	
+		<i class="iconfont icon-words"></i>
+		<span>
+			3443
+		</span>
+	
+</div>
+
+</div> 
+	 
+
+	  <div class="post-content slideDownMin">
+
+		
+
+			
+					<h1 id="微信签名接口开发概要"><a href="#微信签名接口开发概要" class="headerlink" title="微信签名接口开发概要"></a>微信签名接口开发概要</h1><blockquote>
+<p>开始之前，开发人员最好先注册自用公众号测试号，<a href="https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login" target="_blank" rel="noopener">申请地址</a></p>
+</blockquote>
+<h2 id="1、微信验证服务器地址的有效性"><a href="#1、微信验证服务器地址的有效性" class="headerlink" title="1、微信验证服务器地址的有效性"></a>1、微信验证服务器地址的有效性</h2><blockquote>
+<p><a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&amp;id=mp1421135319" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<blockquote>
+<p>需要提前在公众号后台配置域名信息，比如<code>www.abc.com</code>，貌似不支持通配符<code>*</code>。</p>
+</blockquote>
+<a id="more"></a>
+<p>下面以<code>www.abc.com</code>为例说明.</p>
+<h3 id="1-1-根域名配置get请求处理方法"><a href="#1-1-根域名配置get请求处理方法" class="headerlink" title="1.1 根域名配置get请求处理方法"></a>1.1 根域名配置get请求处理方法</h3><p>当配置域名后，微信会对域名发起get请求，并携带以下参数，服务端需要对此请求做出回应，回应方式下面介绍。</p>
+<ul>
+<li>signature: 微信加密签名</li>
+<li>timestamp: 时间戳</li>
+<li>nonce: 随机数</li>
+<li>echostr: 随机字符串</li>
+</ul>
+<p>验证signature确实来自微信，原样返回echostr，即验证成功。加密检验流程如下：</p>
+<ul>
+<li>1）将token、timestamp、nonce三个参数进行字典序排序 </li>
+<li>2）将三个参数字符串拼接成一个字符串进行sha1加密 </li>
+<li>3）开发者获得加密后的字符串可与signature对比，相同即表示该请求来源于微信</li>
+</ul>
+<p>express(nodejs)对应处理方式如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> &#123;signature, timestamp, nonce, echostr&#125; = req.query;</span><br><span class="line">    <span class="keyword">if</span> (!signature || !timestamp || !nonce || !echostr) &#123;</span><br><span class="line">        <span class="keyword">return</span> res.render(<span class="string">'index'</span>, &#123;<span class="attr">title</span>: <span class="string">'测试个微信分享哪哪哪'</span>&#125;);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">const</span> sha1 = crypto.createHash(<span class="string">'sha1'</span>);</span><br><span class="line">    <span class="keyword">const</span> hashCode = sha1.update([config.TOKEN, timestamp, nonce].sort().join(<span class="string">''</span>)).digest(<span class="string">'hex'</span>);</span><br><span class="line">    res.writeHead(<span class="number">200</span>, &#123;<span class="string">'Content-Type'</span>: <span class="string">'text/plain'</span>&#125;);</span><br><span class="line">    <span class="keyword">return</span> res.end((hashCode === signature) ? echostr : <span class="string">''</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="2、获取签名"><a href="#2、获取签名" class="headerlink" title="2、获取签名"></a>2、获取签名</h2><h3 id="2-1-获取token"><a href="#2-1-获取token" class="headerlink" title="2.1 获取token"></a>2.1 获取token</h3><blockquote>
+<p><a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&amp;id=mp1421140183" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<p>需要对微信发起get请求来获取token。</p>
+<p><code>https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&amp;appid=APPID&amp;secret=APPSECRET</code></p>
+<p>其中参数字段如下：</p>
+<ul>
+<li>appid: 对应公众号的appid</li>
+<li>secret: 第三方用户唯一秘钥凭证，即appsecret，从公众号后台获取(或者测试公众号)。</li>
+</ul>
+<p>微信返回内容格式如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"access_token"</span>:<span class="string">"ACCESS_TOKEN"</span>,</span><br><span class="line">	<span class="attr">"expires_in"</span>:<span class="number">7200</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意： token有效期为2小时，且微信对此接口调用次数有上线，每日2000次。微信建议token需在开发者自己的服务端缓存，所谓中控，以减少对微信服务的请求。</p>
+</blockquote>
+<h3 id="2-2-获取jsapi-ticket"><a href="#2-2-获取jsapi-ticket" class="headerlink" title="2.2 获取jsapi_ticket"></a>2.2 获取jsapi_ticket</h3><blockquote>
+<p><a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&amp;id=mp1421141115" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<blockquote>
+<p>生成签名之前必须先了解一下jsapi_ticket，jsapi_ticket是公众号用于调用微信JS接口的临时票据。正常情况下，jsapi_ticket的有效期为7200秒，通过access_token来获取。由于获取jsapi_ticket的api调用次数非常有限，频繁刷新jsapi_ticket会导致api调用受限，影响自身业务，开发者必须在自己的服务全局缓存jsapi_ticket 。</p>
+</blockquote>
+<p>上一步拿到了access_token之后，需要再次获取jsapi_ticket。ticket也具有和access_token同样的限制，所以需要在服务端做缓存。</p>
+<p>获取地址：<code>https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&amp;type=jsapi</code>.</p>
+<ul>
+<li>ACCESS_TOKEN： 上一步获取的access_token</li>
+</ul>
+<p>调用成功后会返回如下内容：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	<span class="attr">"errcode"</span>:<span class="number">0</span>,</span><br><span class="line">	<span class="attr">"errmsg"</span>:<span class="string">"ok"</span>,</span><br><span class="line">	<span class="attr">"ticket"</span>:<span class="string">"bxLdikRXVbTPdHSM05e5u5sUoXNKd8-41ZO3MhKoyN5OfkWITDGgnr2fwJ0m9E8NYzWKVZvdVtaUgWvsdshFKA"</span>,</span><br><span class="line">	<span class="attr">"expires_in"</span>:<span class="number">7200</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-3-生成签名"><a href="#2-3-生成签名" class="headerlink" title="2.3 生成签名"></a>2.3 生成签名</h3><blockquote>
+<p><a href="https://mp.weixin.qq.com/wiki?t=resource/res_main&amp;id=mp1421141115" target="_blank" rel="noopener">官方文档</a></p>
+</blockquote>
+<p>签名算法与access_token类似。规则如下：</p>
+<blockquote>
+<p>签名生成规则如下：参与签名的字段包括noncestr（随机字符串）, 有效的jsapi_ticket, timestamp（时间戳）, url（当前网页的URL，不包含#及其后面部分） 。对所有待签名参数按照字段名的ASCII 码从小到大排序（字典序）后，使用URL键值对的格式（即key1=value1&amp;key2=value2…）拼接成字符串string1。这里需要注意的是所有参数名均为小写字符。对string1作sha1加密，字段名和字段值都采用原始值，不进行URL 转义。</p>
+</blockquote>
+<p>express代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">'/'</span>, <span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> jsapi_ticket = <span class="keyword">await</span> getTicket(); <span class="comment">// 上一步拿到的ticket</span></span><br><span class="line">    <span class="keyword">const</span> timestamp = <span class="built_in">Date</span>.now(); <span class="comment">// 时间戳</span></span><br><span class="line">    <span class="keyword">const</span> url = req.header(<span class="string">'Referer'</span>); <span class="comment">// 请求来源url</span></span><br><span class="line">    <span class="keyword">const</span> noncestr = randomStr.generate(); <span class="comment">// 随机字符串，长度没有明确限制</span></span><br><span class="line">    <span class="comment">// 计算签名</span></span><br><span class="line">    <span class="keyword">const</span> tmpMap = &#123; jsapi_ticket, timestamp, url, noncestr &#125;;</span><br><span class="line">    <span class="keyword">const</span> tmpStr = [<span class="string">'jsapi_ticket'</span>, <span class="string">'timestamp'</span>, <span class="string">'url'</span>, <span class="string">'noncestr'</span>].sort().map(<span class="function">(<span class="params">val</span>) =&gt;</span>  val + <span class="string">'='</span> + tmpMap[val] ).join(<span class="string">'&amp;'</span>);</span><br><span class="line">    <span class="keyword">const</span> sha1 = crypto.createHash(<span class="string">'sha1'</span>);</span><br><span class="line">    <span class="keyword">return</span> sha1.update(tmpStr).digest(<span class="string">'hex'</span>); <span class="comment">// sha1加密后生成签名</span></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="3、将内容微信配置返回给调用方"><a href="#3、将内容微信配置返回给调用方" class="headerlink" title="3、将内容微信配置返回给调用方"></a>3、将内容微信配置返回给调用方</h2><p>调用方在初始化微信api时，会依赖以下几个字段：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">wx.config(&#123;</span><br><span class="line">	appId: <span class="string">'wxcaa8c50195863ed1'</span>,</span><br><span class="line">	timestamp,</span><br><span class="line">	nonceStr,</span><br><span class="line">	signature</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>所以需要在独立的接口上返回以下内容供调用方(前端)调用。</p>
+<p>express代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">router.get(<span class="string">'/'</span>, <span class="keyword">async</span> <span class="function"><span class="keyword">function</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> jsapi_ticket = <span class="keyword">await</span> getTicket();</span><br><span class="line">    <span class="keyword">const</span> timestamp = <span class="built_in">Date</span>.now();</span><br><span class="line">    <span class="keyword">const</span> url = req.header(<span class="string">'Referer'</span>);</span><br><span class="line">    <span class="keyword">const</span> noncestr = randomStr.generate();</span><br><span class="line">    <span class="comment">// 计算签名</span></span><br><span class="line">    <span class="keyword">const</span> tmpMap = &#123; jsapi_ticket, timestamp, url, noncestr &#125;;</span><br><span class="line">    <span class="keyword">const</span> tmpStr = [<span class="string">'jsapi_ticket'</span>, <span class="string">'timestamp'</span>, <span class="string">'url'</span>, <span class="string">'noncestr'</span>].sort().map(<span class="function">(<span class="params">val</span>) =&gt;</span>  val + <span class="string">'='</span> + tmpMap[val] ).join(<span class="string">'&amp;'</span>);</span><br><span class="line">    <span class="keyword">const</span> sha1 = crypto.createHash(<span class="string">'sha1'</span>);</span><br><span class="line">    <span class="keyword">const</span> signature = sha1.update(tmpStr).digest(<span class="string">'hex'</span>); <span class="comment">// 生成的签名</span></span><br><span class="line">    <span class="keyword">return</span> res.status(<span class="number">200</span>).json(&#123; timestamp, noncestr, signature &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>调用方拿到这些配置后，方可进行api调用。</p>
+  	
+					
+	  </div>     
+	  
+
+	
+<div class="post-meta">
+      	
+
+      
+        <i class="iconfont icon-tag"></i>     
+          <a class="tag-link" href="/tags/小程序/">小程序</a> <a class="tag-link" href="/tags/微信开发/">微信开发</a>    
+      	
+</div>
+
+
+
+
+
+<div class="post-footer">
+  <div class="pf-left">
+      <img class="pf-avatar" src="/images/local-logo.png">
+      <p class="pf-des">Lizy</p>
+  </div>
+
+  <div class="pf-right">           
+      <div class="pf-links">
+         
+        
+	
+<script id="-mob-share" src="http://f1.webshare.mob.com/code/mob-share.js?appkey=21d601593a1de"></script>
+	
+	<span class="share-btn">
+	<span class="iconfont icon-share"></span>
+	</span>
+
+
+	<div class="-mob-share sildeUpMin">
+		   			             
+            <a class="iconfont  icon-share-qq -mob-share-qq"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weixin -mob-share-weixin"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weibo -mob-share-weibo"></a>		
+     	   			             
+            <a class="iconfont  icon-share-douban -mob-share-douban"></a>		
+     	   			             
+            <a class="iconfont  icon-share-facebook -mob-share-facebook"></a>		
+     	   			             
+            <a class="iconfont  icon-share-twitter -mob-share-twitter"></a>		
+     	   
+	</div>	
+
+      </div>  
+    <nav class="pf-paginator">
+      
+         
+          <a href="/2018/07/10/小程序总结/" data-hover="wepy框架总结">上一篇</a>      
+            
+        
+      
+        
+        <a href="/2018/07/10/手机代理域名至本地/" data-hover="手机代理线上域名"> 下一篇</a>
+            
+  </nav>   
+  </div>
+</div> 
+	
+
+
+    
+    <div id="disqus_thread"></div>
+
+    <script>
+    (function() { 
+    var d = document, s = d.createElement('script');
+    s.src = 'https://'+'lemonreds'+'.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());    
+    (d.head || d.body).appendChild(s);
+    })();
+    </script>
+
+    <noscript>Please enable JavaScript to view the  <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+    </noscript>
+
+
+	
+</article>
+
+	<div class="sidebar">
+		<h4 class="toc-title">目录</h4>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#微信签名接口开发概要"><span class="toc-text">微信签名接口开发概要</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1、微信验证服务器地址的有效性"><span class="toc-text">1、微信验证服务器地址的有效性</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-根域名配置get请求处理方法"><span class="toc-text">1.1 根域名配置get请求处理方法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2、获取签名"><span class="toc-text">2、获取签名</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-获取token"><span class="toc-text">2.1 获取token</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-获取jsapi-ticket"><span class="toc-text">2.2 获取jsapi_ticket</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-生成签名"><span class="toc-text">2.3 生成签名</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3、将内容微信配置返回给调用方"><span class="toc-text">3、将内容微信配置返回给调用方</span></a></li></ol></li></ol>
+	</div>
+
+          </section> 
+      </div>            
+    
+    <a id="backTop">
+      <span>
+        <i class="iconfont icon-backtotop"></i>
+      </span>
+    </a> 
+
+  
+    
+    <div class="search-container sildeUpMin">
+        <div class="search-header">
+            <input type="text" placeholder="输入你想搜索的" id="search-input" class="search-input">  
+            <span class="search-cancel iconfont icon-cancel"></span>
+        </div>
+        <div id="search-result" class="search-result"></div>
+    </div>
+ 
+     <div class="mobile-menu">      
+
+      
+      <img class="mobile-menu-icon" src="/images/favicon.png">   
+      
+
+         
+            
+
+            <a class="mobile-menu-link" href="/">首页
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/archives">归档
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/tags">标签
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/about">关于
+            </a>
+            
+         
+                          
+
+            <a class="mobile-menu-link mobile-menu-search" href="#">搜索 </a>                 
+            
+         
+      
+</div>        
+    
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){
+	i['GoogleAnalyticsObject']=r;
+	i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-121998627-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+     
+    
+
+
+
+
+<footer id="footer">	    
+
+		
+		<div class="footer-copyright">
+		&copy;
+		
+		2018		
+	
+		Lizy
+		<br>
+
+		Theme By
+		<a href="https://github.com/Lemonreds/hexo-theme-Nayo" target="_blank">Nayo</a>	
+		</div>			
+	 
+</footer>   
+
+  
+
+    <script src="/nayo.bundle.js"></script>           
+  </body>        
+</html>

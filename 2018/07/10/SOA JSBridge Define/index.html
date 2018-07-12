@@ -1,0 +1,1019 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd">
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  
+  
+  <title>  JSBridge设计 |   一介布衣 </title>
+
+ 
+  
+    <link rel="icon" href="/images/favicon.png">
+  
+
+
+  <link rel="stylesheet" href="/nayo.min.css"> 
+</head>  
+  <body>   
+    
+      <header class="header">
+	
+  <nav class="header-nav">        
+   
+    <span class="iconfont icon-menu mobile-toggle"></span>   	
+
+    <div class="header-menu">          
+              
+            
+
+              <a class="header-menu-link" id="header-menu-home" href="/">首页</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-archives" href="/archives">归档</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-tags" href="/tags">标签</a>     
+
+            
+            
+            
+
+              <a class="header-menu-link" id="header-menu-about" href="/about">关于</a>     
+
+            
+            
+            
+
+              <a class="iconfont icon-menu-search header-menu-link" id="header-menu-search"></a>
+
+            
+                
+    </div>  
+    
+  </nav>
+</header>   
+
+      <div class="container">       
+          
+          
+            <section class="main">  
+          
+
+          <article class="post">
+  
+	<div class="post-header">
+
+	<p class="post-title">	
+		JSBridge设计
+	</p>
+			
+
+	<div class="meta-info">	
+	<span>
+		7月 10, 2018
+	</span>
+
+	
+	
+		<i class="iconfont icon-words"></i>
+		<span>
+			7444
+		</span>
+	
+</div>
+
+</div> 
+	 
+
+	  <div class="post-content slideDownMin">
+
+		
+
+			
+					<h1 id="混合开发中的JSBridge设计"><a href="#混合开发中的JSBridge设计" class="headerlink" title="混合开发中的JSBridge设计"></a>混合开发中的JSBridge设计</h1><p>包含了常用的JSBridge功能特性。如UA检测、硬件调用、错误约定等。</p>
+<a id="more"></a>
+<h2 id="环境检测"><a href="#环境检测" class="headerlink" title="环境检测"></a>环境检测</h2><p><strong><code>navigator.userAgent</code></strong></p>
+<p>以<code>smartoneapp(待定)/x.x(app 版本)</code>为关键字标识为SOA内嵌</p>
+<p><strong> iOS </strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mozilla/5.0 (iphone; cpu iphone os 5_1_1 like mac os x) applewebkit/534.46 (khtml, like gecko) mobile/9b206 smartoneapp/1.0</span><br></pre></td></tr></table></figure>
+<p><strong> Android </strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mozilla/5.0 (linux; u; android 4.1.2; zh-cn; mi-one plus build/jzo54k) applewebkit/534.30 (khtml, like gecko) version/4.0 mobile safari/534.30 smartoneapp/1.0</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>机制原因，JavaScript注入api、与native端交互均为异步API注入后，会在全局对象(window)注入属性: <code>JSJSBridge</code>。下文代码示例/语法均以缩写形式展示。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 属性挂载</span></span><br><span class="line"><span class="built_in">window</span>.JSJSBridge</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="错误约定"><a href="#错误约定" class="headerlink" title="错误约定"></a>错误约定</h2><p><strong>任何的API调用，都是异步的</strong>。在调用回调中，如果发生任何错误，会在参数中传入错误信息，信息如下：</p>
+<p>错误种类待定。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">	error: <span class="number">1</span>,</span><br><span class="line">	errorMessage: <span class="string">'接口不存在'</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>示例：</p>
+<table>
+<thead>
+<tr>
+<th>error</th>
+<th>errorMessage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>接口不存在</td>
+</tr>
+<tr>
+<td>2</td>
+<td>参数无效</td>
+</tr>
+<tr>
+<td>3</td>
+<td>发生未知错误</td>
+</tr>
+<tr>
+<td>4</td>
+<td>接口无权限（用户未授权）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="事件"><a href="#事件" class="headerlink" title="事件"></a><font color="gray">事件</font></h2><h3 id="on-function"><a href="#on-function" class="headerlink" title="on [function]"></a>on <em>[function]</em></h3><p>通过<code>on</code>函数来监听事件。</p>
+<h4 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h4><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.on(type: <span class="built_in">String</span>, <span class="attr">listener</span>: <span class="built_in">Function</span>)</span><br></pre></td></tr></table></figure>
+<h5 id="type"><a href="#type" class="headerlink" title="type"></a><em>type</em></h5><p>事件类型字符串。不同的事件类型，对应不同的事件通知(listener参数)，事件类型见下方</p>
+<h5 id="listener"><a href="#listener" class="headerlink" title="listener"></a><em>listener</em></h5><p>事件侦听函数，当监听的事件触发时，会接受到一个事件通知，触发此函数。函数参数为通用事件对象。</p>
+<h5 id="事件类型"><a href="#事件类型" class="headerlink" title="事件类型"></a><em>事件类型</em></h5><table>
+<thead>
+<tr>
+<th>type</th>
+<th>描述</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>menuChange</td>
+<td>监听Hamburger展开状态</td>
+<td>需要从事件对象中获取展开状态（关闭/展开）</td>
+</tr>
+<tr>
+<td>optionClick</td>
+<td>监听titleBar右上角option按钮点击事件</td>
+<td>—</td>
+</tr>
+<tr>
+<td>orientationChange</td>
+<td>手机方向改变</td>
+<td>如果app禁用了横屏，需要透此时间给js调用，使用<code>JSBridge.on</code>绑定</td>
+</tr>
+</tbody>
+</table>
+<h5 id="事件对象"><a href="#事件对象" class="headerlink" title="事件对象"></a><em>事件对象</em></h5><p>默认情况下，事件对象只包含timeStamp这一固定属性，其余属性视事件种类而定。</p>
+<p>事件示例：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.on(<span class="string">'menuChange'</span>, (e) =&gt; &#123;</span><br><span class="line">	<span class="keyword">const</span> &#123; timeStamp, status &#125; = e</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>事件</th>
+<th>说明</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>timeStamp</td>
+<td>*</td>
+<td>事件创建时的时间戳</td>
+<td>此时间戳表示页面加载完成，距离事件发生时的时间，单位：毫秒</td>
+</tr>
+<tr>
+<td>menuStatus</td>
+<td>menuChange</td>
+<td>Hamburger的展开状态</td>
+<td>‘SHOW’ 或者 ‘HIDE’</td>
+</tr>
+<tr>
+<td>orientation</td>
+<td>orientationChange</td>
+<td>native端禁用横向模式，通过此事件监测手机横向模式</td>
+<td>取值：0\90\180\270</td>
+</tr>
+</tbody>
+</table>
+<h3 id="off-function"><a href="#off-function" class="headerlink" title="off  [function]"></a>off  <em>[function]</em></h3><p>解除由addEventListener绑定事件，listener必须与addEventListener listener具有相同引用</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.on(type: <span class="built_in">String</span>, <span class="attr">listener</span>: <span class="built_in">Function</span>)</span><br></pre></td></tr></table></figure>
+<hr>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><p><strong>实现机制原因，所有回调方法必须传递回调方法名或者方法体（string类型），且必须挂载在全局之下。</strong></p>
+<p>示例如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">window</span>.setStorageCallback = <span class="function">(<span class="params">data</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(data)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 传入函数名称</span></span><br><span class="line">JSBridge.setStorage(<span class="string">'setStorageCallback'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 传入函数体字符串</span></span><br><span class="line">JSBridge.setStorage(setStorage.toString())</span><br></pre></td></tr></table></figure>
+<p>本质上，Native在window注入JSBridge下的所有方法，只接受字符串做为参数。具体原理是Native端会将回调方法拼入参数之后，再传入eval执行。所以callback在没有bind到其他作用域的情况下，默认是在全局执行的。<code>this</code>指向window。</p>
+<p>以下demo均一致。</p>
+<h2 id="Native功能"><a href="#Native功能" class="headerlink" title="Native功能"></a>Native功能</h2><h3 id="媒体相关"><a href="#媒体相关" class="headerlink" title="媒体相关"></a>媒体相关</h3><h4 id="photo"><a href="#photo" class="headerlink" title="photo"></a><em>photo</em></h4><p>唤起系统拍照/选择照片界面</p>
+<p><em>JSBridge.photo(callback: [string])</em></p>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">global.callbackName = <span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="keyword">const</span> &#123;path, size&#125; = res</span><br><span class="line">&#125;</span><br><span class="line">JSBridge.photo(<span class="string">'callbackName'</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>string</td>
+<td>选择图片成功回调</td>
+</tr>
+</tbody>
+</table>
+<p><strong>回调参数：</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>path</td>
+<td>string</td>
+<td>图片上传路径</td>
+<td>包含文件名、文件后缀</td>
+</tr>
+<tr>
+<td>size</td>
+<td>number</td>
+<td>文件大小</td>
+<td>单位<code>kb</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="imageViewer"><a href="#imageViewer" class="headerlink" title=" imageViewer "></a><font color="gray"> <em>imageViewer</em> </font></h4><p>唤起系统图片预览界面</p>
+<h4 id="saveImage"><a href="#saveImage" class="headerlink" title="* saveImage"></a>* <em>saveImage</em></h4><p>保存图片至系统相册，需用户授权</p>
+<h4 id="compressImage"><a href="#compressImage" class="headerlink" title="* compressImage"></a>* <em>compressImage</em></h4><p>压缩图片，用于上传前的压缩</p>
+<h4 id="playAudio"><a href="#playAudio" class="headerlink" title="* playAudio"></a>* <em>playAudio</em></h4><p>播放声音、音乐</p>
+<h4 id="pauseAudio"><a href="#pauseAudio" class="headerlink" title="* pauseAudio"></a>* <em>pauseAudio</em></h4><p>暂停声音、音乐</p>
+<h4 id="stopAudio"><a href="#stopAudio" class="headerlink" title="* stopAudio"></a>* <em>stopAudio</em></h4><p>停止播放声音、音乐</p>
+<h4 id="playVideo"><a href="#playVideo" class="headerlink" title="playVideo"></a>playVideo</h4><p>调起native播放器播放给定URL的视频，只能播放网络视频，不支持本地视频播放。</p>
+<p><em>JSBridge.playVideo(url: [String], callback: [String])</em></p>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">global.playCallback = <span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="comment">// 播放开始回调</span></span><br><span class="line">&#125;</span><br><span class="line">JSBridge.playVideo(<span class="string">'http://path/to/video/video.mp4'</span>, <span class="string">'playCallback'</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td>string</td>
+<td>视频URL，只支持网络视频</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>string</td>
+<td>开始播放的回调名称</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pauseVideo"><a href="#pauseVideo" class="headerlink" title="* pauseVideo"></a><font color="gray">* pauseVideo</font></h4><p>暂停视频</p>
+<h4 id="stopVideo"><a href="#stopVideo" class="headerlink" title="* stopVideo"></a>* stopVideo</h4><p>停止播放视频</p>
+<h3 id="地理位置"><a href="#地理位置" class="headerlink" title="地理位置"></a>地理位置</h3><h4 id="getCurrentLocation"><a href="#getCurrentLocation" class="headerlink" title="getCurrentLocation"></a>getCurrentLocation</h4><p>获取设备地理位置</p>
+<p><em>JSBridge.getCurrentLocation(callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>function</td>
+<td>获取位置信息回调</td>
+</tr>
+</tbody>
+</table>
+<p><strong>回调参数：</strong></p>
+<p>回调参数是一个<a href="https://developer.mozilla.org/zh-CN/docs/Web/API/Coordinates" target="_blank" rel="noopener">Coordinate对象</a></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>latitude</td>
+<td>double</td>
+<td>当前位置纬度坐标</td>
+<td>-</td>
+</tr>
+<tr>
+<td>longitude</td>
+<td>double</td>
+<td>当前位置经度坐标</td>
+<td>-</td>
+</tr>
+<tr>
+<td>altitude</td>
+<td>double</td>
+<td>相对于海平面的位置高度(米)</td>
+<td>未实现</td>
+</tr>
+<tr>
+<td>speed</td>
+<td>double</td>
+<td>设备当前移动速度（米/秒）</td>
+<td>未实现</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">global.locationCb = <span class="function">(<span class="params">coord</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="keyword">const</span> &#123;latitude, longitude&#125; = coord</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">`latitude=<span class="subst">$&#123;latitude&#125;</span>, longitude=<span class="subst">$&#123;longitude&#125;</span>`</span>) <span class="comment">//</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">JSBridge.getCurrentLocation(<span class="string">'locationCb'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="startContinuousLocation"><a href="#startContinuousLocation" class="headerlink" title="* startContinuousLocation"></a><font color="gray">* <em>startContinuousLocation</em></font></h4><p>开始持续获取当前地理位置，1次/500ms</p>
+<h4 id="stopContinuousLocation"><a href="#stopContinuousLocation" class="headerlink" title="* stopContinuousLocation"></a>* stopContinuousLocation</h4><p>停止持续获取当前地理位置</p>
+<h3 id="分享"><a href="#分享" class="headerlink" title="分享"></a>分享</h3><h4 id="shareTo"><a href="#shareTo" class="headerlink" title="shareTo"></a>shareTo</h4><p>分享当前页面到微信（朋友圈、好友）</p>
+<p><em>JSBridge.shareTo(option, callback)</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>option</td>
+<td>object</td>
+<td>分享配置</td>
+<td>配置见下方</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>function</td>
+<td>分享结束回调</td>
+<td>用户取消、分享失败、成功都会回调</td>
+</tr>
+</tbody>
+</table>
+<p><strong>配置说明：option</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+<th>必选</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>url</td>
+<td>string</td>
+<td>web页面url</td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>title</td>
+<td>string</td>
+<td>分享标题</td>
+<td>是</td>
+<td>-</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>描述文字</td>
+<td>是</td>
+<td>分享平台不同，超长截断字数也不同</td>
+</tr>
+<tr>
+<td>image</td>
+<td>string</td>
+<td>图标url</td>
+<td>否</td>
+<td>网络地址</td>
+</tr>
+<tr>
+<td>target</td>
+<td>array</td>
+<td>分享的目标平台数组</td>
+<td>否</td>
+<td>接受<code>[&quot;wechat&quot;, &quot;timeline&quot;, &quot;sina&quot;]</code>，默认全部分享渠道</td>
+</tr>
+</tbody>
+</table>
+<p><strong>回调参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>status</td>
+<td>boolean</td>
+<td>分享结果：true、false</td>
+<td><code>true</code> or <code>false</code></td>
+</tr>
+<tr>
+<td>target</td>
+<td>array[string]</td>
+<td>用户分享渠道</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> shareConfig = <span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">	url: <span class="string">'http://estore-dev.china.smart.com/pdp?xxxx=xxx'</span>,</span><br><span class="line">	title: <span class="string">'奔驰GLE 中国红'</span>,</span><br><span class="line">	description: <span class="string">'描述文字'</span>,</span><br><span class="line">	image: <span class="string">'/static/share/smart-share.jpg'</span>,</span><br><span class="line">	target: [<span class="string">'wechat'</span>, <span class="string">'timeline'</span>]</span><br><span class="line">&#125;)</span><br><span class="line">global.shareCb = <span class="function">(<span class="params">res</span>) =&gt;</span> &#123;</span><br><span class="line">	<span class="keyword">const</span> &#123; status, target &#125; = res</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">`分享结果：<span class="subst">$&#123;status ? <span class="string">'成功'</span> : <span class="string">'失败'</span>&#125;</span>, 分享至：<span class="subst">$&#123;target[<span class="number">0</span>]&#125;</span>`</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">JSBridge.shareTo(shareConfig, <span class="string">'shareCb'</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="网络"><a href="#网络" class="headerlink" title="* 网络"></a><font color="gray">* 网络</font></h3><h4 id="getNetworkType"><a href="#getNetworkType" class="headerlink" title="getNetworkType"></a><em>getNetworkType</em></h4><p>获取网络类型</p>
+<h3 id="界面、组件"><a href="#界面、组件" class="headerlink" title="界面、组件"></a><em>界面、组件</em></h3><h4 id="toast"><a href="#toast" class="headerlink" title="* toast"></a><font color="gray">* toast</font></h4><p>标准化UI 提示框</p>
+<h4 id="confirm"><a href="#confirm" class="headerlink" title="* confirm"></a><font color="gray">* confirm</font></h4><p>标准化UI 确认对话框</p>
+<h4 id="datePicker"><a href="#datePicker" class="headerlink" title="* datePicker"></a><font color="gray">* datePicker</font></h4><p>系统日期选择器</p>
+<h4 id="dateTimePicker"><a href="#dateTimePicker" class="headerlink" title="* dateTimePicker"></a><font color="gray">* dateTimePicker</font></h4><p>系统日期时间选择器</p>
+<h4 id="showLoading"><a href="#showLoading" class="headerlink" title="* showLoading"></a><font color="gray">* showLoading</font></h4><p>显示<code>加载中...</code>提示窗</p>
+<h4 id="hideLoading"><a href="#hideLoading" class="headerlink" title="* hideLoading"></a><font color="gray">* hideLoading</font></h4><p>隐藏<code>加载中...</code>提示窗</p>
+<h4 id="setTitle"><a href="#setTitle" class="headerlink" title="setTitle"></a>setTitle</h4><p>设置titleBar文字内容</p>
+<p><em>JSBridge.setTitle(title: [String], callback: [String])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>title</td>
+<td>string</td>
+<td>title内容</td>
+<td>-</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">global.setTitleCb = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'新的标题已经生效了'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">JSBridge.setTitle(<span class="string">'新的标题文字'</span>, <span class="string">'setTitleCb'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="setTitleBgColor"><a href="#setTitleBgColor" class="headerlink" title="setTitleBgColor"></a>setTitleBgColor</h4><p>设置titleBar背景色</p>
+<p><em>JSBridge.setTitleBgColor(color: [String], callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>color</td>
+<td>string</td>
+<td>16进制颜色</td>
+<td>-</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">global.setTitleBgColorCb = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'新标题背景色生效了'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">JSBridge.setTitleBgColor(<span class="string">'#FF3390'</span>, <span class="string">'setTitleBgColorCb'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="setTitleColor"><a href="#setTitleColor" class="headerlink" title="* setTitleColor"></a>* setTitleColor</h4><p>设置titleBar文字颜色</p>
+<p><em>JSBridge.setTitleColor(color: [String], callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>color</td>
+<td>string</td>
+<td>16进制颜色</td>
+<td>-</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.setTitleColor(<span class="string">'#FF3390'</span>, () =&gt; &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'新标题色生效了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="hideTitlebar"><a href="#hideTitlebar" class="headerlink" title="* hideTitlebar"></a>* hideTitlebar</h4><p>隐藏title栏</p>
+<p><em>JSBridge.hideTitlebar(callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.hideTitlebar(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'标题栏隐藏了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="showTitlebar"><a href="#showTitlebar" class="headerlink" title="* showTitlebar"></a>* showTitlebar</h4><p>显示title栏</p>
+<p><em>JSBridge.showTitlebar(callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.showTitlebar(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'标题栏显示出来了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="hideTab"><a href="#hideTab" class="headerlink" title="* hideTab"></a>* hideTab</h4><p>隐藏tab栏</p>
+<p><em>JSBridge.hideTab(callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.hideTab(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'tab栏被隐藏了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="showTab"><a href="#showTab" class="headerlink" title="* showTab"></a>* showTab</h4><p>显示tab栏</p>
+<p><em>JSBridge.showTab(callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>callback</td>
+<td>回调</td>
+<td>-</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.showTab(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'tab栏显示出来了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="setLandscape"><a href="#setLandscape" class="headerlink" title="* setLandscape"></a><font color="gray">* setLandscape</font></h4><p>设置横屏或竖屏</p>
+<h3 id="通信"><a href="#通信" class="headerlink" title="通信"></a>通信</h3><h4 id="navigateTo"><a href="#navigateTo" class="headerlink" title="* navigateTo"></a>* navigateTo</h4><p>跳转至native页面</p>
+<p><em>JSBridge.navigateTo(option: [Object], callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>option</td>
+<td>object</td>
+<td>跳转配置</td>
+<td>配置见下方</td>
+</tr>
+</tbody>
+</table>
+<p><strong>配置说明：option</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+<th>必选</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td>string</td>
+<td>native页面名称</td>
+<td>是</td>
+<td>现支持<code>[&quot;login&quot;, &quot;discovery&quot;]</code></td>
+</tr>
+<tr>
+<td>param</td>
+<td>object</td>
+<td>传递数据</td>
+<td>否</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.navigateTo(&#123;</span><br><span class="line">	name: <span class="string">'login'</span>,</span><br><span class="line">	param: &#123;</span><br><span class="line">		redirectUrl: <span class="string">'/dealers?xxx=xxx'</span>,</span><br><span class="line">		someDataForNative: &#123;</span><br><span class="line">			a: <span class="string">'a'</span>,</span><br><span class="line">			b: <span class="string">'b'</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;, () =&gt; &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'跳转至native页面了'</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<h4 id="setStorage"><a href="#setStorage" class="headerlink" title="setStorage"></a>setStorage</h4><p>向客户端存储数据，登录json、cookie、全局共用数据等</p>
+<p><em>JSBridge.setStorage(option: [Object], callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>option</td>
+<td>object</td>
+<td>storage配置</td>
+<td>配置</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>function</td>
+<td>回调</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p><strong>配置说明：option</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+<th>必选</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>namespace</td>
+<td>string</td>
+<td>存储namespace</td>
+<td>是</td>
+<td>如登录：’CIAM’</td>
+</tr>
+<tr>
+<td>data</td>
+<td>object</td>
+<td>json数据</td>
+<td>是</td>
+<td>需做<code>JSON.stringify</code>处理</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> storage = <span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">	namespace: <span class="string">'CIAM'</span>,</span><br><span class="line">	data: &#123;</span><br><span class="line">		responseFromCIAM: &#123;</span><br><span class="line">			a: <span class="string">'a'</span>,</span><br><span class="line">			b: <span class="string">'b'</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">global.setStorageCb = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'设置数据成功'</span>)</span><br><span class="line">&#125;</span><br><span class="line">JSBridge.setStorage(storage, <span class="string">'setStorageCb'</span>)</span><br></pre></td></tr></table></figure>
+<h4 id="getStorage"><a href="#getStorage" class="headerlink" title="getStorage"></a>getStorage</h4><p>向客户端存储数据，登录json、cookie、全局共用数据等</p>
+<p><em>JSBridge.getStorage(option: [Object], callback: [Function])</em></p>
+<p><strong>参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>option</td>
+<td>object</td>
+<td>storage配置</td>
+<td>-</td>
+</tr>
+<tr>
+<td>callback</td>
+<td>function</td>
+<td>回调</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p><strong>配置说明：option</strong></p>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>类型</th>
+<th>说明</th>
+<th>必选</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>namespace</td>
+<td>string</td>
+<td>存储namespace</td>
+<td>是</td>
+<td>如登录：’CIAM’</td>
+</tr>
+</tbody>
+</table>
+<p><strong>回调参数说明：</strong></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>说明</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>data</td>
+<td>object</td>
+<td>json数据</td>
+<td>是</td>
+<td>需做<code>JSON.parse</code>处理</td>
+</tr>
+</tbody>
+</table>
+<p>示例:</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">JSBridge.getStorage(&#123;</span><br><span class="line">	namespace: <span class="string">'CIAM'</span></span><br><span class="line">&#125;, (res) =&gt; &#123;</span><br><span class="line">	<span class="keyword">const</span> data = <span class="built_in">JSON</span>.parse(res)</span><br><span class="line">	<span class="built_in">console</span>.log(data)</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	=&gt; 输出：</span></span><br><span class="line"><span class="comment">	responseFromCIAM: &#123;</span></span><br><span class="line"><span class="comment">		a: 'a',</span></span><br><span class="line"><span class="comment">		b: 'b'</span></span><br><span class="line"><span class="comment">	&#125;</span></span><br><span class="line"><span class="comment">	*/</span></span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+  	
+					
+	  </div>     
+	  
+
+	
+<div class="post-meta">
+      	
+
+      
+        <i class="iconfont icon-tag"></i>     
+          <a class="tag-link" href="/tags/JSBridge-Javascript-Bridge设计/">JSBridge, Javascript, Bridge设计</a>    
+      	
+</div>
+
+
+
+
+
+<div class="post-footer">
+  <div class="pf-left">
+      <img class="pf-avatar" src="/images/local-logo.png">
+      <p class="pf-des">Lizy</p>
+  </div>
+
+  <div class="pf-right">           
+      <div class="pf-links">
+         
+        
+	
+<script id="-mob-share" src="http://f1.webshare.mob.com/code/mob-share.js?appkey=21d601593a1de"></script>
+	
+	<span class="share-btn">
+	<span class="iconfont icon-share"></span>
+	</span>
+
+
+	<div class="-mob-share sildeUpMin">
+		   			             
+            <a class="iconfont  icon-share-qq -mob-share-qq"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weixin -mob-share-weixin"></a>		
+     	   			             
+            <a class="iconfont  icon-share-weibo -mob-share-weibo"></a>		
+     	   			             
+            <a class="iconfont  icon-share-douban -mob-share-douban"></a>		
+     	   			             
+            <a class="iconfont  icon-share-facebook -mob-share-facebook"></a>		
+     	   			             
+            <a class="iconfont  icon-share-twitter -mob-share-twitter"></a>		
+     	   
+	</div>	
+
+      </div>  
+    <nav class="pf-paginator">
+      
+         
+          <a href="/2018/07/10/JavaScript单例模式/" data-hover="JavaScript设计模式 - 单例模式">上一篇</a>      
+            
+        
+      
+        
+        <a href="/2018/07/10/Jsonp浏览器端实现/" data-hover="JSONP浏览器端原理及实现"> 下一篇</a>
+            
+  </nav>   
+  </div>
+</div> 
+	
+
+
+    
+    <div id="disqus_thread"></div>
+
+    <script>
+    (function() { 
+    var d = document, s = d.createElement('script');
+    s.src = 'https://'+'lemonreds'+'.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());    
+    (d.head || d.body).appendChild(s);
+    })();
+    </script>
+
+    <noscript>Please enable JavaScript to view the  <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+    </noscript>
+
+
+	
+</article>
+
+	<div class="sidebar">
+		<h4 class="toc-title">目录</h4>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#混合开发中的JSBridge设计"><span class="toc-text">混合开发中的JSBridge设计</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#环境检测"><span class="toc-text">环境检测</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#初始化"><span class="toc-text">初始化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#错误约定"><span class="toc-text">错误约定</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#事件"><span class="toc-text">事件</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#on-function"><span class="toc-text">on [function]</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#语法"><span class="toc-text">语法</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#type"><span class="toc-text">type</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#listener"><span class="toc-text">listener</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#事件类型"><span class="toc-text">事件类型</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#事件对象"><span class="toc-text">事件对象</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#off-function"><span class="toc-text">off  [function]</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#注意："><span class="toc-text">注意：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Native功能"><span class="toc-text">Native功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#媒体相关"><span class="toc-text">媒体相关</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#photo"><span class="toc-text">photo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#imageViewer"><span class="toc-text"> imageViewer </span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#saveImage"><span class="toc-text">* saveImage</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#compressImage"><span class="toc-text">* compressImage</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#playAudio"><span class="toc-text">* playAudio</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#pauseAudio"><span class="toc-text">* pauseAudio</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#stopAudio"><span class="toc-text">* stopAudio</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#playVideo"><span class="toc-text">playVideo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#pauseVideo"><span class="toc-text">* pauseVideo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#stopVideo"><span class="toc-text">* stopVideo</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#地理位置"><span class="toc-text">地理位置</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#getCurrentLocation"><span class="toc-text">getCurrentLocation</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#startContinuousLocation"><span class="toc-text">* startContinuousLocation</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#stopContinuousLocation"><span class="toc-text">* stopContinuousLocation</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#分享"><span class="toc-text">分享</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#shareTo"><span class="toc-text">shareTo</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#网络"><span class="toc-text">* 网络</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#getNetworkType"><span class="toc-text">getNetworkType</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#界面、组件"><span class="toc-text">界面、组件</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#toast"><span class="toc-text">* toast</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#confirm"><span class="toc-text">* confirm</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#datePicker"><span class="toc-text">* datePicker</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#dateTimePicker"><span class="toc-text">* dateTimePicker</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#showLoading"><span class="toc-text">* showLoading</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#hideLoading"><span class="toc-text">* hideLoading</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setTitle"><span class="toc-text">setTitle</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setTitleBgColor"><span class="toc-text">setTitleBgColor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setTitleColor"><span class="toc-text">* setTitleColor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#hideTitlebar"><span class="toc-text">* hideTitlebar</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#showTitlebar"><span class="toc-text">* showTitlebar</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#hideTab"><span class="toc-text">* hideTab</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#showTab"><span class="toc-text">* showTab</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setLandscape"><span class="toc-text">* setLandscape</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#通信"><span class="toc-text">通信</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#navigateTo"><span class="toc-text">* navigateTo</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#setStorage"><span class="toc-text">setStorage</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#getStorage"><span class="toc-text">getStorage</span></a></li></ol></li></ol></li></ol></li></ol>
+	</div>
+
+          </section> 
+      </div>            
+    
+    <a id="backTop">
+      <span>
+        <i class="iconfont icon-backtotop"></i>
+      </span>
+    </a> 
+
+  
+    
+    <div class="search-container sildeUpMin">
+        <div class="search-header">
+            <input type="text" placeholder="输入你想搜索的" id="search-input" class="search-input">  
+            <span class="search-cancel iconfont icon-cancel"></span>
+        </div>
+        <div id="search-result" class="search-result"></div>
+    </div>
+ 
+     <div class="mobile-menu">      
+
+      
+      <img class="mobile-menu-icon" src="/images/favicon.png">   
+      
+
+         
+            
+
+            <a class="mobile-menu-link" href="/">首页
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/archives">归档
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/tags">标签
+            </a>
+            
+         
+            
+
+            <a class="mobile-menu-link" href="/about">关于
+            </a>
+            
+         
+                          
+
+            <a class="mobile-menu-link mobile-menu-search" href="#">搜索 </a>                 
+            
+         
+      
+</div>        
+    
+
+
+
+
+<script>
+(function(i,s,o,g,r,a,m){
+	i['GoogleAnalyticsObject']=r;
+	i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-121998627-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+
+     
+    
+
+
+
+
+<footer id="footer">	    
+
+		
+		<div class="footer-copyright">
+		&copy;
+		
+		2018		
+	
+		Lizy
+		<br>
+
+		Theme By
+		<a href="https://github.com/Lemonreds/hexo-theme-Nayo" target="_blank">Nayo</a>	
+		</div>			
+	 
+</footer>   
+
+  
+
+    <script src="/nayo.bundle.js"></script>           
+  </body>        
+</html>
